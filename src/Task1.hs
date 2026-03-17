@@ -33,7 +33,7 @@ data IExpr
 -- >>> evalIExpr (Add (Mul (Lit 3) (Lit 2)) (Lit 3))
 -- 9
 evalIExpr :: IExpr -> Integer
-evalIExpr (Lit x) = evalMonoid (getSum . runIdentity) (Identity . Sum) [x]
+evalIExpr (Lit x) = evalMonoid getSum Sum [x]
 evalIExpr (Add x y) = evalMonoid getSum Sum (map evalIExpr [x, y])
 evalIExpr (Mul x y) = evalMonoid getProduct Product (map evalIExpr [x, y])
 
@@ -85,7 +85,7 @@ instance Parse IExpr where
       parseIExpr :: [String] -> OperandStack -> Maybe IExpr
       parseIExpr [] [x] = Just x
       parseIExpr [] _ = Nothing
-      parseIExpr (x : xs) operands = foldr ((<|>) . (\f -> f x operands)) Nothing [parseOperand, parseOp] >>= parseIExpr xs
+      parseIExpr (x : xs) operands = foldr ((<|>) . (\f -> f x operands)) mempty [parseOperand, parseOp] >>= parseIExpr xs
 
       parseOperand :: String -> OperandStack -> Maybe OperandStack
       parseOperand str operands = (: operands) . Lit <$> parse str
