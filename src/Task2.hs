@@ -58,7 +58,7 @@ instance (Parse a, Parse op) => Parse (Expr a op) where
       parseOp op (x : y : rest) = (: rest) <$> (BinOp <$> parse op <*> Just y <*> Just x)
       parseOp _ _ = Nothing
 
-      parsePrimitive constr str operands = ((:) . constr <$> parse str) <*> Just operands
+      parsePrimitive constr str operands = (: operands) . constr <$> parse str
 
       parseVar :: String -> OperandStack a op -> Maybe (OperandStack a op)
       parseVar = parsePrimitive Var
