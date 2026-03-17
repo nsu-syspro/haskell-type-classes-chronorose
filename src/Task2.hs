@@ -141,6 +141,4 @@ evaluateInteger = evaluate @Integer @IntOp
 -- The 'forall a op.' part is required to define generic type
 -- of intermediate 'Expr' expression that uses scoped type variables 'a' and 'op'.
 evaluate :: forall a op. (Eval a op, Parse a, Parse op) => [(String, a)] -> String -> Maybe a
-evaluate m s = case parse s of
-  Just e -> evalExpr m (e :: Expr a op)
-  Nothing -> Nothing
+evaluate m s = (parse s :: Maybe (Expr a op)) >>= evalExpr m
