@@ -33,11 +33,11 @@ data IExpr
 -- 9
 evalIExpr :: IExpr -> Integer
 evalIExpr (Lit x) = x
-evalIExpr (Add x y) = evalSemiGroup getSum Sum x y
-evalIExpr (Mul x y) = evalSemiGroup getProduct Product x y
+evalIExpr (Add x y) = evalMonoid getSum Sum x y
+evalIExpr (Mul x y) = evalMonoid getProduct Product x y
 
-evalSemiGroup :: (Monoid m) => (m -> Integer) -> (Integer -> m) -> IExpr -> IExpr -> Integer
-evalSemiGroup dest constr x y = (dest . mconcat . map (constr . evalIExpr)) [x, y]
+evalMonoid :: (Monoid m) => (m -> Integer) -> (Integer -> m) -> IExpr -> IExpr -> Integer
+evalMonoid dest constr x y = (dest . mconcat . map (constr . evalIExpr)) [x, y]
 
 -- * Parsing
 
