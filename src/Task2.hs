@@ -51,7 +51,7 @@ instance (Parse a, Parse op) => Parse (Expr a op) where
       parseExpr [] [x] = Just x
       parseExpr [] _ = Nothing
       parseExpr (x : xs) operands =
-        foldr ((<|>) . (\f -> f x operands)) Nothing [parseOp, parseOperand, parseVar]
+        foldr ((<|>) . (\f -> f x operands)) mempty [parseOp, parseOperand, parseVar]
           >>= parseExpr xs
 
       parseOp :: String -> OperandStack a op -> Maybe (OperandStack a op)
