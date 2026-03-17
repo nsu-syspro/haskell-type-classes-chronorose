@@ -47,7 +47,7 @@ instance (Parse a, Parse op) => Parse (Expr a op) where
   parse :: String -> Maybe (Expr a op)
   parse = flip parseExpr [] . words
     where
-      parseExpr :: (Parse a, Parse op) => [String] -> OperandStack a op -> Maybe (Expr a op)
+      parseExpr :: [String] -> OperandStack a op -> Maybe (Expr a op)
       parseExpr [] [x] = Just x
       parseExpr [] _ = Nothing
       parseExpr (x : xs) operands =
