@@ -1,11 +1,17 @@
 {-# OPTIONS_GHC -Wall #-}
+
 -- The above pragma enables all warnings
 
 module Task3 where
 
+import Data.List (sort)
+import Data.List.NonEmpty qualified as NonEmpty
+import Task1 (Parse (..))
+import Task2 (Eval (..), Expr (..), evalExpr)
+
 -- | Solves SAT problem for given boolean formula written in Reverse Polish Notation
 --
--- Returns whether given formula is satifiable
+-- Returns whether given formula is satisfiable*
 -- wrapped into 'Maybe' with 'Nothing' indicating parsing failure.
 --
 -- Only following binary operations are allowed:
@@ -25,6 +31,38 @@ module Task3 where
 -- Just True
 -- >>> solveSAT "x xor"
 -- Nothing
---
 solveSAT :: String -> Maybe Bool
-solveSAT = error "TODO: define solveSAT"
+solveSAT str = or <$> results
+  where
+    sat = parseSAT str
+    vars = fmap (map NonEmpty.head . NonEmpty.group . sort . gatherVars) sat
+    bools = fmap generateBools vars
+    results = bools >>= mapM (\bs -> sat >>= evalExpr bs)
+
+parseSAT :: String -> Maybe (Expr Bool BoolOp)
+parseSAT = parse
+
+generateBools :: [String] -> [[(String, Bool)]]
+generateBools [] = [[]]
+generateBools (v : vars) = [(v, b) : vs | b <- [True, False], vs <- generateBools vars]
+
+gatherVars :: Expr a op -> [String]
+gatherVars (Lit _) = []
+gatherVars (Var x) = [x]
+gatherVars (BinOp _ l r) = gatherVars l ++ gatherVars r
+
+data BoolOp = Xor | And | Or
+
+newtype SATBool = SATBool {getBool :: Bool}
+
+instance Parse BoolOp where
+  parse :: String -> Maybe BoolOp
+  parse "xor" = Just Xor
+  parse "and" = Just And
+  parse "or" = Just Or
+  parse _ = Nothing
+
+instance Eval Bool BoolOp where
+  evalBinOp Xor = (/=)
+  evalBinOp And = (&&)
+  evalBinOp Or = (||)
