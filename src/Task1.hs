@@ -36,7 +36,7 @@ evalIExpr (Lit x) = x
 evalIExpr (Add x y) = evalSemiGroup getSum Sum x y
 evalIExpr (Mul x y) = evalSemiGroup getProduct Product x y
 
-evalSemiGroup :: (Monoid sg) => (sg -> Integer) -> (Integer -> sg) -> IExpr -> IExpr -> Integer
+evalSemiGroup :: (Monoid m) => (m -> Integer) -> (Integer -> m) -> IExpr -> IExpr -> Integer
 evalSemiGroup dest constr x y = (dest . mconcat . map (constr . evalIExpr)) [x, y]
 
 -- * Parsing
