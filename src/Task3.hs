@@ -34,13 +34,10 @@ import Task2 (Eval (..), Expr (..), evalExpr)
 solveSAT :: String -> Maybe Bool
 solveSAT str = or <$> results
   where
-    sat = parseSAT str
-    vars = fmap (map NonEmpty.head . NonEmpty.group . sort . gatherVars) sat
-    bools = fmap generateBools vars
+    sat :: Maybe (Expr Bool BoolOp)
+    sat = parse str
+    bools = generateBools . map NonEmpty.head . NonEmpty.group . sort . gatherVars <$> sat
     results = bools >>= mapM (\bs -> sat >>= evalExpr bs)
-
-parseSAT :: String -> Maybe (Expr Bool BoolOp)
-parseSAT = parse
 
 generateBools :: [String] -> [[(String, Bool)]]
 generateBools [] = [[]]
@@ -49,7 +46,7 @@ generateBools (v : vars) = [(v, b) : vs | b <- [True, False], vs <- generateBool
 gatherVars :: Expr a op -> [String]
 gatherVars (Lit _) = []
 gatherVars (Var x) = [x]
-gatherVars (BinOp _ l r) = gatherVars l ++ gatherVars r
+gatherVars (BinOp _ l r) = concatMap gatherVars [l, r]
 
 data BoolOp = Xor | And | Or
 

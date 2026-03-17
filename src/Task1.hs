@@ -5,7 +5,6 @@
 module Task1 where
 
 import Control.Applicative (Alternative (..))
-import Data.Functor.Identity (Identity (..))
 import Data.Monoid (Product (..), Sum (..))
 import Text.Read (readMaybe)
 
