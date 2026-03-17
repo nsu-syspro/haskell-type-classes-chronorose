@@ -85,10 +85,10 @@ instance Parse IExpr where
       parseIExpr :: [String] -> OperandStack -> Maybe IExpr
       parseIExpr [] [x] = Just x
       parseIExpr [] _ = Nothing
-      parseIExpr (x : xs) operands = (parseOperand x operands <|> parseOp x operands) >>= parseIExpr xs
+      parseIExpr (x : xs) operands = foldr ((<|>) . (\f -> f x operands)) Nothing [parseOperand, parseOp] >>= parseIExpr xs
 
       parseOperand :: String -> OperandStack -> Maybe OperandStack
-      parseOperand str operands = ((:) . Lit <$> parse str) <*> Just operands
+      parseOperand str operands = (: operands) . Lit <$> parse str
 
       parseOp :: String -> OperandStack -> Maybe OperandStack
       parseOp "+" (x : y : rest) = Just (Add y x : rest)
