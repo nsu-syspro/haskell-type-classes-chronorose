@@ -1,18 +1,23 @@
 {-# OPTIONS_GHC -Wall #-}
+
 -- The above pragma enables all warnings
 
 module Task1 where
+
+import Control.Applicative (Alternative (..))
+import Data.Monoid (Product (..), Sum (..))
+import Text.Read (readMaybe)
 
 -- * Expression data type
 
 -- | Representation of integer arithmetic expressions comprising
 -- - Literals of type 'a'
 -- - Binary operations 'Add' and 'Mul'
-data IExpr =
-    Lit Integer
+data IExpr
+  = Lit Integer
   | Add IExpr IExpr
   | Mul IExpr IExpr
-  deriving Show
+  deriving (Show)
 
 -- * Evaluation
 
@@ -26,9 +31,13 @@ data IExpr =
 -- 5
 -- >>> evalIExpr (Add (Mul (Lit 3) (Lit 2)) (Lit 3))
 -- 9
---
 evalIExpr :: IExpr -> Integer
-evalIExpr = error "TODO: define evalIExpr"
+evalIExpr (Lit x) = evalMonoid getSum Sum [x]
+evalIExpr (Add x y) = evalMonoid getSum Sum (map evalIExpr [x, y])
+evalIExpr (Mul x y) = evalMonoid getProduct Product (map evalIExpr [x, y])
+
+evalMonoid :: (Monoid m) => (m -> Integer) -> (Integer -> m) -> [Integer] -> Integer
+evalMonoid dest constr = dest . mconcat . map constr
 
 -- * Parsing
 
@@ -53,9 +62,37 @@ class Parse a where
 -- Nothing
 -- >>> parse "2 3" :: Maybe IExpr
 -- Nothing
---
+type OperandStack = [IExpr]
+
+instance Parse Integer where
+  parse :: String -> Maybe Integer
+  parse = readMaybe
+
+instance Parse Bool where
+  parse "true" = Just True
+  parse "false" = Just False
+  parse _ = Nothing
+
+instance Parse String where
+  parse :: String -> Maybe String
+  parse = Just
+
 instance Parse IExpr where
-  parse = error "TODO: define parse (Parse IExpr)"
+  parse :: String -> Maybe IExpr
+  parse = flip parseIExpr [] . words
+    where
+      parseIExpr :: [String] -> OperandStack -> Maybe IExpr
+      parseIExpr [] [x] = Just x
+      parseIExpr [] _ = Nothing
+      parseIExpr (x : xs) operands = foldr ((<|>) . (\f -> f x operands)) mempty [parseOperand, parseOp] >>= parseIExpr xs
+
+      parseOperand :: String -> OperandStack -> Maybe OperandStack
+      parseOperand str operands = (: operands) . Lit <$> parse str
+
+      parseOp :: String -> OperandStack -> Maybe OperandStack
+      parseOp "+" (x : y : rest) = Just (Add y x : rest)
+      parseOp "*" (x : y : rest) = Just (Mul y x : rest)
+      parseOp _ _ = Nothing
 
 -- * Evaluation with parsing
 
@@ -75,6 +112,5 @@ instance Parse IExpr where
 -- Nothing
 -- >>> evaluateIExpr "2 3"
 -- Nothing
---
 evaluateIExpr :: String -> Maybe Integer
-evaluateIExpr = error "TODO: define evaluateIExpr"
+evaluateIExpr str = evalIExpr <$> parse str
