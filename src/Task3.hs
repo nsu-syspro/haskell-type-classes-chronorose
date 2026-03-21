@@ -4,8 +4,7 @@
 
 module Task3 where
 
-import Data.List (sort)
-import Data.List.NonEmpty qualified as NonEmpty
+import Data.List (nub)
 import Task1 (Parse (..))
 import Task2 (Eval (..), Expr (..), evalExpr)
 
@@ -36,7 +35,7 @@ solveSAT str = or <$> results
   where
     sat :: Maybe (Expr Bool BoolOp)
     sat = parse str
-    bools = generateBools . map NonEmpty.head . NonEmpty.group . sort . gatherVars <$> sat
+    bools = generateBools . nub . gatherVars <$> sat
     results = bools >>= mapM (\bs -> sat >>= evalExpr bs)
 
 generateBools :: [String] -> [[(String, Bool)]]
