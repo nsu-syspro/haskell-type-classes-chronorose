@@ -100,12 +100,7 @@ instance Eval Integer IntOp where
 evalExpr :: (Eval a op) => [(String, a)] -> Expr a op -> Maybe a
 evalExpr _ (Lit x) = Just x
 evalExpr xs (Var x) = lookup x xs
-evalExpr xs (BinOp op l r) =
-  evalExpr xs l
-    >>= ( \left ->
-            evalExpr xs r
-              >>= (Just . evalBinOp op left)
-        )
+evalExpr xs (BinOp op l r) = (Just . evalBinOp) op <*> evalExpr xs l <*> evalExpr xs r
 
 -- | Parses given integer expression in Reverse Polish Notation and evaluates it
 -- using given association list of variable values

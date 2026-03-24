@@ -5,7 +5,6 @@
 module Task1 where
 
 import Control.Applicative (Alternative (..))
-import Data.Monoid (Product (..), Sum (..))
 import Text.Read (readMaybe)
 
 -- * Expression data type
@@ -32,12 +31,9 @@ data IExpr
 -- >>> evalIExpr (Add (Mul (Lit 3) (Lit 2)) (Lit 3))
 -- 9
 evalIExpr :: IExpr -> Integer
-evalIExpr (Lit x) = evalMonoid getSum Sum [x]
-evalIExpr (Add x y) = evalMonoid getSum Sum (map evalIExpr [x, y])
-evalIExpr (Mul x y) = evalMonoid getProduct Product (map evalIExpr [x, y])
-
-evalMonoid :: (Monoid m) => (m -> Integer) -> (Integer -> m) -> [Integer] -> Integer
-evalMonoid dest constr = dest . mconcat . map constr
+evalIExpr (Lit x) = x
+evalIExpr (Add x y) = evalIExpr x + evalIExpr y
+evalIExpr (Mul x y) = evalIExpr x * evalIExpr y
 
 -- * Parsing
 
